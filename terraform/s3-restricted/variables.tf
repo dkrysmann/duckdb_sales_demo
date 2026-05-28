@@ -109,10 +109,9 @@ variable "snowflake_user" {
   type        = string
 }
 
-variable "snowflake_password" {
-  description = "Snowflake password — use TF_VAR_snowflake_password env var, do not commit"
+variable "snowflake_private_key_path" {
+  description = "Path to the RSA private key .p8 file used by the Snowflake Terraform provider"
   type        = string
-  sensitive   = true
 }
 
 variable "snowflake_role" {
@@ -155,5 +154,14 @@ variable "snowflake_database" {
 
 variable "snowflake_schema" {
   description = "Snowflake schema where the external stage lives"
+  type        = string
+}
+
+variable "snowflake_streaming_rsa_public_key" {
+  description = <<-EOT
+    RSA public key for the SHELLY_STREAMER service account (content only, no header/footer).
+    Extract from your private key:
+      openssl rsa -in ~/.ssh/snowflake_rsa_key.p8 -pubout 2>/dev/null | grep -v '\-\-\-' | tr -d '\n'
+  EOT
   type        = string
 }

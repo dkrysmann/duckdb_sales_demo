@@ -37,6 +37,11 @@ output "writer_policy_arn" {
   value       = aws_iam_policy.writer.arn
 }
 
+output "contracts_pipe_notification_channel" {
+  description = "SQS ARN Snowflake created for CONTRACTS_PIPE auto-ingest (already wired to S3 by Terraform)"
+  value       = snowflake_pipe.contracts.notification_channel
+}
+
 output "snowflake_role_arn" {
   description = "ARN of the IAM role assumed by Snowflake"
   value       = aws_iam_role.snowflake.arn
