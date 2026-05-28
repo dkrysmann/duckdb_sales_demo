@@ -147,3 +147,13 @@ variable "snowflake_s3_bucket" {
   description = "S3 bucket name Snowflake is allowed to read (STORAGE_ALLOWED_LOCATIONS)"
   type        = string
 }
+
+variable "snowflake_database" {
+  description = "Snowflake database where the external stage lives"
+  type        = string
+}
+
+variable "snowflake_schema" {
+  description = "Snowflake schema where the external stage lives"
+  type        = string
+}

@@ -106,3 +106,26 @@ resource "snowflake_storage_integration" "this" {
     "s3://${aws_s3_bucket.this.id}/",
   ]
 }
+
+# ===========================================================================
+# Snowflake external stage
+#
+# Import existing stage before applying:
+#   terraform import snowflake_stage.s3_stage <DATABASE>|<SCHEMA>|S3_STAGE
+# ===========================================================================
+
+resource "snowflake_stage" "s3_stage" {
+  name                = "S3_STAGE"
+  database            = var.snowflake_database
+  schema              = var.snowflake_schema
+  url                 = "s3://${var.snowflake_s3_bucket}/"
+  storage_integration = snowflake_storage_integration.this.name
+}
+
+resource "snowflake_stage" "sales_stage" {
+  name                = "S3_SALES_STAGE"
+  database            = var.snowflake_database
+  schema              = var.snowflake_schema
+  url                 = "s3://${aws_s3_bucket.this.id}/"
+  storage_integration = snowflake_storage_integration.this.name
+}
