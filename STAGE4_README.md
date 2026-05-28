@@ -1,5 +1,9 @@
 # Stage 4 — Compute README
 
+**Pipeline:** [README](README.md) — [Stage 1 (Ingest)](INGEST_README.md) →
+[Stage 2 (Cleanup)](STAGE2_README.md) → [Stage 3 (Integrate)](STAGE3_README.md) →
+Stage 4 (Compute) → [Stage 5 (Report)](STAGE5_README.md)
+
 Reads the integrated fact table from `stage_integrate` (Stage 3) and
 produces four analytical tables in the `stage_compute` schema of `stages.duckdb`.
 

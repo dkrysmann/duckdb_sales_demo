@@ -1,5 +1,9 @@
 # Stage 5 — Report README
 
+**Pipeline:** [README](README.md) — [Stage 1 (Ingest)](INGEST_README.md) →
+[Stage 2 (Cleanup)](STAGE2_README.md) → [Stage 3 (Integrate)](STAGE3_README.md) →
+[Stage 4 (Compute)](STAGE4_README.md) → Stage 5 (Report)
+
 Reads the analytical tables from `stage_compute` (Stage 4) and renders a set
 of linked HTML files into the `reports/` directory.
 

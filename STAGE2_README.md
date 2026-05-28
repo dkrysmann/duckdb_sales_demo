@@ -4,7 +4,7 @@ Reads raw tables from `stages.duckdb` (`stage_ingest` schema, written by Stage 1
 Produces four `clean_*` tables in the `stage_cleanup` schema of the same database.
 Full reprocess: every run drops and rebuilds all clean tables from scratch.
 
-**Pipeline stages:** [Stage 1 (Ingest)](INGEST_README.md) → Stage 2 (Cleanup) →
+**Pipeline:** [README](README.md) — [Stage 1 (Ingest)](INGEST_README.md) → Stage 2 (Cleanup) →
 [Stage 3 (Integrate)](STAGE3_README.md) → [Stage 4 (Compute)](STAGE4_README.md) →
 [Stage 5 (Report)](STAGE5_README.md)
 

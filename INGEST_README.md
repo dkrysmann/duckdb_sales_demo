@@ -3,7 +3,7 @@
 Loads daily CSV partitions into `stages.duckdb` (`stage_ingest` schema) using an append
 strategy for fact data and SCD Type 2 for dimension data.
 
-**Pipeline stages:** Stage 1 (Ingest) → [Stage 2 (Cleanup)](STAGE2_README.md) →
+**Pipeline:** [README](README.md) — Stage 1 (Ingest) → [Stage 2 (Cleanup)](STAGE2_README.md) →
 [Stage 3 (Integrate)](STAGE3_README.md) → [Stage 4 (Compute)](STAGE4_README.md) →
 [Stage 5 (Report)](STAGE5_README.md)
 

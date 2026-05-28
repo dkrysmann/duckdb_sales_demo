@@ -3,7 +3,7 @@
 Reads clean rows from `stage_cleanup` (Stage 2) and joins them into one wide
 fact table in the `stage_integrate` schema of `stages.duckdb`.
 
-**Pipeline stages:** [Stage 1 (Ingest)](INGEST_README.md) →
+**Pipeline:** [README](README.md) — [Stage 1 (Ingest)](INGEST_README.md) →
 [Stage 2 (Cleanup)](STAGE2_README.md) → Stage 3 (Integrate) →
 [Stage 4 (Compute)](STAGE4_README.md) → [Stage 5 (Report)](STAGE5_README.md)
 
