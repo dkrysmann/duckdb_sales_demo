@@ -1,0 +1,16 @@
+# Requirements for the Sales Pipeline project
+# Python 3.14+
+#
+# Install:
+#   pip install -r requirements.txt
+
+# Stage 1 — DuckDB ingest
+duckdb==1.5.3
+
+# Stage 2 — Country normalisation
+pycountry==26.2.16
+rapidfuzz==3.14.5
+
+# Stage 5 — Excel report output
+openpyxl==3.1.5
+et_xmlfile==2.0.0        # openpyxl dependency

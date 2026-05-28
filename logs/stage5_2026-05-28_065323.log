@@ -1,0 +1,32 @@
+2026-05-28 06:53:23 [INFO] ============================================================
+2026-05-28 06:53:23 [INFO] Stage 5 started  (full reprocess)
+2026-05-28 06:53:23 [INFO] Database    /home/dkrysmann/projects/assesement_opp/stages.duckdb
+2026-05-28 06:53:23 [INFO] Output dir  /home/dkrysmann/projects/assesement_opp/reports
+2026-05-28 06:53:23 [INFO] ============================================================
+2026-05-28 06:53:24 [INFO]   Written: /home/dkrysmann/projects/assesement_opp/reports/index.html
+2026-05-28 06:53:24 [INFO]   Written: /home/dkrysmann/projects/assesement_opp/reports/sales_summary.html
+2026-05-28 06:53:24 [INFO]   Written: /home/dkrysmann/projects/assesement_opp/reports/bonus_report.html
+2026-05-28 06:53:24 [INFO]   Written: /home/dkrysmann/projects/assesement_opp/reports/churn_report.html
+2026-05-28 06:53:24 [INFO]   Written: /home/dkrysmann/projects/assesement_opp/reports/merchant_M001.html
+2026-05-28 06:53:24 [INFO]   Written: /home/dkrysmann/projects/assesement_opp/reports/merchant_M002.html
+2026-05-28 06:53:24 [INFO]   Written: /home/dkrysmann/projects/assesement_opp/reports/merchant_M003.html
+2026-05-28 06:53:24 [INFO]   Written: /home/dkrysmann/projects/assesement_opp/reports/merchant_M004.html
+2026-05-28 06:53:24 [INFO]   Written: /home/dkrysmann/projects/assesement_opp/reports/merchant_M005.html
+2026-05-28 06:53:24 [INFO] 
+2026-05-28 06:53:24 [INFO] ============================================================
+2026-05-28 06:53:24 [INFO] SUMMARY
+2026-05-28 06:53:24 [INFO]   Output directory : /home/dkrysmann/projects/assesement_opp/reports
+2026-05-28 06:53:24 [INFO]   HTML files written:
+2026-05-28 06:53:24 [INFO]     bonus_report.html
+2026-05-28 06:53:24 [INFO]     churn_report.html
+2026-05-28 06:53:24 [INFO]     index.html
+2026-05-28 06:53:24 [INFO]     merchant_M001.html
+2026-05-28 06:53:24 [INFO]     merchant_M002.html
+2026-05-28 06:53:24 [INFO]     merchant_M003.html
+2026-05-28 06:53:24 [INFO]     merchant_M004.html
+2026-05-28 06:53:24 [INFO]     merchant_M005.html
+2026-05-28 06:53:24 [INFO]     sales_summary.html
+2026-05-28 06:53:24 [INFO]   Merchant pages   : 5
+2026-05-28 06:53:24 [INFO]   Total files      : 9
+2026-05-28 06:53:24 [INFO] ============================================================
+2026-05-28 06:53:24 [INFO] Stage 5 complete.  Open: /home/dkrysmann/projects/assesement_opp/reports/index.html

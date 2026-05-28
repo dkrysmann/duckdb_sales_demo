@@ -1,0 +1,8 @@
+product_id,product_name,threshold,bonus_amount
+P001,Laptop,10,20.00
+P002,Mouse,40,50.00
+P003,Keyboard,30,95.00
+P004,Monitor,5,30.00
+P005,Headset,20,10.00
+P001,Laptop,10,200.00
+P002,Mouse,50,50.00

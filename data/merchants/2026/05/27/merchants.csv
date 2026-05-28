@@ -1,0 +1,8 @@
+merchant_id,merchant_name,store_id,store_name,country
+M001,Alice Johnson,S001,TechShop Berlin,Germany
+M001,Alice Johnson,S002,TechShop Munich,Germany
+M002,Bob Martinez,S003,ElectroMadrid,Spain
+M003,Carol Lee,S004,DigitalParis,France
+M004,David Kim,S005,TechTokyo,Japan
+M005,Emma Wilson,S006,ByteLondon,United Kingdom
+M005,Emma Wilson,S007,ByteManchester,United Kingdom

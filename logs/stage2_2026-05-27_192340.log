@@ -1,0 +1,58 @@
+2026-05-27 19:23:40 [INFO] ============================================================
+2026-05-27 19:23:40 [INFO] Stage 2 started  (full reprocess)
+2026-05-27 19:23:40 [INFO] Database          /home/dkrysmann/projects/assesement_opp/stages.duckdb
+2026-05-27 19:23:40 [INFO] Output schema     stage_cleanup
+2026-05-27 19:23:40 [INFO] Fuzzy threshold   80
+2026-05-27 19:23:40 [INFO] ============================================================
+2026-05-27 19:23:40 [INFO] Schema 'stage_cleanup' ready.
+2026-05-27 19:23:40 [DEBUG] Legacy clean_* tables from old schemas removed (if any existed).
+2026-05-27 19:23:40 [INFO] Cleaning 'product_sales' ...
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'Sp@in' → 'Spain' (score=80)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'Frnace' → 'France' (score=83)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'Untied Kingdom' → 'United Kingdom' (score=92)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'Portug4l' → 'Portugal' (score=87)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'Uni+ed Kingdom' → 'United Kingdom' (score=92)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'Spian' → 'Spain' (score=80)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'JAPAN' → 'Japan' (score=100)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'GERMANY' → 'Germany' (score=100)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'Jap@n' → 'Japan' (score=80)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'U.K.' → 'United Kingdom' (alias lookup)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'Un1ted Kingdom' → 'United Kingdom' (score=92)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'Fr@nce' → 'France' (score=83)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'Spain' → 'Spain' (score=100)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'Germ@ny' → 'Germany' (score=85)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'Franc3' → 'France' (score=83)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'Mexic0' → 'Mexico' (score=83)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'Germny' → 'Germany' (score=92)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.product_sales] 'JAP4N' → 'Japan' (score=80)
+2026-05-27 19:23:40 [INFO]   stage_cleanup.clean_product_sales 38 rows  |  PASS=38  WARN=0  FAIL=0
+2026-05-27 19:23:40 [INFO] Cleaning 'merchants' ...
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.merchants] 'United Kingdom' → 'United Kingdom' (score=100)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.merchants] 'Japan' → 'Japan' (score=100)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.merchants] 'France' → 'France' (score=100)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.merchants] 'Spain' → 'Spain' (score=100)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.merchants] 'Germany' → 'Germany' (score=100)
+2026-05-27 19:23:40 [INFO]   stage_cleanup.clean_merchants  7 rows  |  PASS=7  WARN=0  FAIL=0
+2026-05-27 19:23:40 [INFO] Cleaning 'customers' ...
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.customers] 'France' → 'France' (score=100)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.customers] 'United Kingdom' → 'United Kingdom' (score=100)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.customers] 'Japan' → 'Japan' (score=100)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.customers] 'Mexico' → 'Mexico' (score=100)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.customers] 'China' → 'China' (score=100)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.customers] 'Spain' → 'Spain' (score=100)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.customers] 'Portugal' → 'Portugal' (score=100)
+2026-05-27 19:23:40 [DEBUG] [stage_ingest.customers] 'Germany' → 'Germany' (score=100)
+2026-05-27 19:23:40 [INFO]   stage_cleanup.clean_customers  10 rows  |  PASS=10  WARN=0  FAIL=0
+2026-05-27 19:23:40 [INFO] Cleaning 'bonus_tiers' ...
+2026-05-27 19:23:40 [INFO]   stage_cleanup.clean_bonus_tiers 21 rows  |  PASS=21  WARN=0  FAIL=0
+2026-05-27 19:23:40 [INFO] 
+2026-05-27 19:23:40 [INFO] ============================================================
+2026-05-27 19:23:40 [INFO] SUMMARY
+2026-05-27 19:23:40 [INFO] TABLE                             TOTAL    PASS    WARN    FAIL
+2026-05-27 19:23:40 [INFO] ------------------------------------------------------------
+2026-05-27 19:23:40 [INFO] stage_cleanup.clean_product_sales     38      38       0       0
+2026-05-27 19:23:40 [INFO] stage_cleanup.clean_merchants         7       7       0       0
+2026-05-27 19:23:40 [INFO] stage_cleanup.clean_customers        10      10       0       0
+2026-05-27 19:23:40 [INFO] stage_cleanup.clean_bonus_tiers      21      21       0       0
+2026-05-27 19:23:40 [INFO] ============================================================
+2026-05-27 19:23:40 [INFO] All rows PASS or WARN. Stage 2 complete.

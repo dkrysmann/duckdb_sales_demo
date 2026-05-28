@@ -1,0 +1,10 @@
+customer_id,customer_name,email,registration_date,country
+C001,John Smith,john.smith@email.com,2024-01-01,Germany
+C002,Maria Garcia,maria.garcia@email.com,2024-01-02,Spain
+C003,Yuki Tanaka,yuki.tanaka@email.com,2024-01-05,Japan
+C004,Sophie Dubois,sophie.dubois@email.com,2024-01-10,France
+C005,James Brown,james.brown@email.com,2024-02-01,United Kingdom
+C006,Ana Rodrigues,ana.rodrigues@email.com,2024-02-15,Portugal
+C007,Hans Mueller,hans.mueller@email.com,2024-03-01,Germany
+C008,Priya Patel,priya.patel@email.com,2024-03-15,United Kingdom
+C009,Li Wei,li.wei@email.com,2026-05-26,China

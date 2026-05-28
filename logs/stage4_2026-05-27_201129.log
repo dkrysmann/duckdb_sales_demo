@@ -1,0 +1,7 @@
+2026-05-27 20:11:29 [INFO] ============================================================
+2026-05-27 20:11:29 [INFO] Stage 4 started  (full reprocess)
+2026-05-27 20:11:29 [INFO] Database          /home/dkrysmann/projects/assesement_opp/stages.duckdb
+2026-05-27 20:11:29 [INFO] Source schema     stage_integrate
+2026-05-27 20:11:29 [INFO] Output schema     stage_compute
+2026-05-27 20:11:29 [INFO] Inactivity days   1
+2026-05-27 20:11:29 [INFO] ============================================================

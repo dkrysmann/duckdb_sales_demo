@@ -1,0 +1,34 @@
+# ---------------------------------------------------------------------------
+# terraform.tfvars.example
+#
+# Kopieer dit bestand naar terraform.tfvars en pas de waarden aan.
+# Commit terraform.tfvars NIET naar versiebeheer (staat in .gitignore).
+# ---------------------------------------------------------------------------
+
+aws_region   = "eu-west-1"
+bucket_name  = "mijn-bedrijf-sales-data-prd"   # globaal uniek, lowercase
+environment  = "prd"
+project      = "sales-pipeline"
+
+# Wie mag de leesrol aannemen?
+# Gebruik IAM-gebruikers, andere rollen, of AWS-diensten (bijv. Lambda)
+reader_trusted_principals = [
+  "arn:aws:iam::123456789012:root",                     # beheerder
+  "arn:aws:iam::123456789012:user/data-analyst",        # individuele gebruiker
+  "arn:aws:iam::123456789012:role/lambda-report-role",  # Lambda-functie
+]
+
+# Wie mag de schrijfrol aannemen?
+writer_trusted_principals = [
+  "arn:aws:iam::123456789012:root",                     # beheerder
+  "arn:aws:iam::123456789012:role/ci-deploy-role",      # CI/CD-pipeline
+  "arn:aws:iam::123456789012:user/etl-service-account", # ETL-serviceaccount
+]
+
+reader_role_name = "sales-pipeline-s3-reader"
+writer_role_name = "sales-pipeline-s3-writer"
+
+versioning_enabled = true
+force_destroy      = false   # zet op true ALLEEN voor ontwikkelomgeving
+
+# log_bucket = "mijn-bedrijf-access-logs"   # verwijder commentaar om te activeren

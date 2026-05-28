@@ -1,0 +1,28 @@
+2026-05-27 19:23:21 [INFO] ============================================================
+2026-05-27 19:23:21 [INFO] Ingest started   partition_date=2026-05-28
+2026-05-27 19:23:21 [INFO] Database         /home/dkrysmann/projects/assesement_opp/stages.duckdb
+2026-05-27 19:23:21 [INFO] ============================================================
+2026-05-27 19:23:21 [DEBUG] Schema 'stage_ingest' ready.
+2026-05-27 19:23:21 [DEBUG] Table 'stage_ingest.product_sales' ready.
+2026-05-27 19:23:21 [DEBUG] Table 'stage_ingest.merchants' ready.
+2026-05-27 19:23:21 [DEBUG] Table 'stage_ingest.customers' ready.
+2026-05-27 19:23:21 [DEBUG] Table 'stage_ingest.bonus_tiers' ready.
+2026-05-27 19:23:21 [INFO] Processing 'product_sales'  →  /home/dkrysmann/projects/assesement_opp/data/product_sales/2026/05/28/product_sales.csv
+2026-05-27 19:23:21 [WARNING]   [MISSING] /home/dkrysmann/projects/assesement_opp/data/product_sales/2026/05/28/product_sales.csv not found — skipping 'product_sales', continuing.
+2026-05-27 19:23:21 [INFO] Processing 'merchants'  →  /home/dkrysmann/projects/assesement_opp/data/merchants/2026/05/28/merchants.csv
+2026-05-27 19:23:21 [WARNING]   [MISSING] /home/dkrysmann/projects/assesement_opp/data/merchants/2026/05/28/merchants.csv not found — skipping 'merchants', continuing.
+2026-05-27 19:23:21 [INFO] Processing 'customers'  →  /home/dkrysmann/projects/assesement_opp/data/customers/2026/05/28/customers.csv
+2026-05-27 19:23:21 [WARNING]   [MISSING] /home/dkrysmann/projects/assesement_opp/data/customers/2026/05/28/customers.csv not found — skipping 'customers', continuing.
+2026-05-27 19:23:21 [INFO] Processing 'bonus_tiers'  →  /home/dkrysmann/projects/assesement_opp/data/bonus_tiers/2026/05/28/bonus_tiers.csv
+2026-05-27 19:23:21 [DEBUG]   [DIM]   'bonus_tiers': 9 rows in snapshot.
+2026-05-27 19:23:21 [INFO]   [DIM]   'bonus_tiers': 1 new, 4 changed, 0 removed.
+2026-05-27 19:23:21 [INFO] 
+2026-05-27 19:23:21 [INFO] ============================================================
+2026-05-27 19:23:21 [INFO] SUMMARY  partition_date=2026-05-28
+2026-05-27 19:23:21 [INFO] TABLE                STATUS     ROWS     NOTE
+2026-05-27 19:23:21 [INFO] ------------------------------------------------------------
+2026-05-27 19:23:21 [INFO] product_sales        MISSING    0        file not found
+2026-05-27 19:23:21 [INFO] merchants            MISSING    0        file not found
+2026-05-27 19:23:21 [INFO] customers            MISSING    0        file not found
+2026-05-27 19:23:21 [INFO] bonus_tiers          SUCCESS    5        
+2026-05-27 19:23:21 [INFO] ============================================================

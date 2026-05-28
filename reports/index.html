@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sales Pipeline — Dashboard</title>
+<style>
+:root {
+    --brand:   #1a3a5c;
+    --accent:  #2e86c1;
+    --light:   #eaf4fb;
+    --pass:    #1e8449;
+    --warn:    #d68910;
+    --fail:    #c0392b;
+    --muted:   #7f8c8d;
+    --border:  #d5d8dc;
+    --bg:      #f8f9fa;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    background: var(--bg);
+    color: #2c3e50;
+    line-height: 1.5;
+}
+header {
+    background: var(--brand);
+    color: #fff;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+header h1 { font-size: 1.3rem; font-weight: 600; }
+header .sub { font-size: 0.8rem; opacity: 0.7; margin-top: 2px; }
+nav.breadcrumb {
+    background: var(--light);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 32px;
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+nav.breadcrumb a { color: var(--accent); text-decoration: none; }
+nav.breadcrumb a:hover { text-decoration: underline; }
+main { padding: 24px 32px; max-width: 1280px; }
+h2 { font-size: 1.1rem; font-weight: 600; color: var(--brand);
+     margin: 24px 0 12px; border-bottom: 2px solid var(--accent);
+     padding-bottom: 4px; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--brand); margin: 20px 0 8px; }
+.kpi-row {
+    display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0 24px;
+}
+.kpi {
+    background: #fff; border: 1px solid var(--border); border-radius: 6px;
+    padding: 16px 24px; min-width: 160px; flex: 1;
+}
+.kpi .val { font-size: 1.6rem; font-weight: 700; color: var(--brand); }
+.kpi .lbl { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+table {
+    width: 100%; border-collapse: collapse;
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 6px; overflow: hidden; margin-bottom: 24px;
+    font-size: 0.88rem;
+}
+thead th {
+    background: var(--brand); color: #fff;
+    padding: 9px 12px; text-align: left; font-weight: 600;
+}
+tbody tr:nth-child(even) { background: var(--light); }
+tbody tr:hover { background: #d6eaf8; }
+td, tbody th { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 0.75rem; font-weight: 600;
+}
+.badge-pass  { background: #d5f5e3; color: var(--pass); }
+.badge-warn  { background: #fdebd0; color: var(--warn); }
+.badge-fail  { background: #fadbd8; color: var(--fail); }
+.badge-churn { background: #fadbd8; color: var(--fail); }
+.badge-active{ background: #d5f5e3; color: var(--pass); }
+.card-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px; margin: 16px 0 28px;
+}
+.card {
+    background: #fff; border: 1px solid var(--border); border-radius: 6px;
+    padding: 16px; text-decoration: none; color: inherit;
+    transition: box-shadow .15s;
+}
+.card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+.card .card-title { font-weight: 600; color: var(--accent); margin-bottom: 6px; }
+.card .card-meta  { font-size: 0.78rem; color: var(--muted); }
+footer {
+    margin-top: 40px; padding: 16px 32px;
+    border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="sub">Sales Pipeline Report</div>
+    <h1>Sales Pipeline — Dashboard</h1>
+  </div>
+  <div style="text-align:right">
+    <div class="sub">Generated</div>
+    <div style="font-size:.85rem">2026-05-28 06:53:24</div>
+  </div>
+</header>
+<nav class="breadcrumb"><a href="index.html">Home</a></nav>
+<main>
+<h2>Pipeline Overview</h2><div class="kpi-row"><div class="kpi"><div class="val">€16,109.11</div><div class="lbl">Total Revenue</div></div><div class="kpi"><div class="val">38</div><div class="lbl">Total Transactions</div></div><div class="kpi"><div class="val">7</div><div class="lbl">Active Stores</div></div><div class="kpi"><div class="val">€2,869.00</div><div class="lbl">Total Bonus Earned</div></div><div class="kpi"><div class="val">2 / 10</div><div class="lbl">Churned / Total Customers</div></div></div>
+    <h2>Reports</h2>
+    <div class="card-grid">
+      <a class="card" href="sales_summary.html">
+        <div class="card-title">📊 Sales Summary</div>
+        <div class="card-meta">Overall revenue and volume across all stores by day</div>
+      </a>
+      <a class="card" href="bonus_report.html">
+        <div class="card-title">🎯 Bonus Report</div>
+        <div class="card-meta">Bonus eligibility per sale and aggregate earnings per merchant</div>
+      </a>
+      <a class="card" href="churn_report.html">
+        <div class="card-title">⚠️ Customer Churn</div>
+        <div class="card-meta">Customers classified by inactivity window</div>
+      </a>
+    </div><h2>Merchants</h2><div class="card-grid">
+        <a class="card" href="merchant_M001.html">
+          <div class="card-title">Alice Johnson — TechShop Munich</div>
+          <div class="card-meta">
+            Germany&nbsp;&nbsp;|&nbsp;&nbsp;
+            €4,369.79 revenue&nbsp;&nbsp;|&nbsp;&nbsp;
+            11 transactions
+          </div>
+        </a>
+        <a class="card" href="merchant_M004.html">
+          <div class="card-title">David Kim — TechTokyo</div>
+          <div class="card-meta">
+            Japan&nbsp;&nbsp;|&nbsp;&nbsp;
+            €3,869.84 revenue&nbsp;&nbsp;|&nbsp;&nbsp;
+            6 transactions
+          </div>
+        </a>
+        <a class="card" href="merchant_M005.html">
+          <div class="card-title">Emma Wilson — ByteManchester</div>
+          <div class="card-meta">
+            United Kingdom&nbsp;&nbsp;|&nbsp;&nbsp;
+            €3,759.80 revenue&nbsp;&nbsp;|&nbsp;&nbsp;
+            9 transactions
+          </div>
+        </a>
+        <a class="card" href="merchant_M002.html">
+          <div class="card-title">Bob Martinez — ElectroMadrid</div>
+          <div class="card-meta">
+            Spain&nbsp;&nbsp;|&nbsp;&nbsp;
+            €2,109.81 revenue&nbsp;&nbsp;|&nbsp;&nbsp;
+            6 transactions
+          </div>
+        </a>
+        <a class="card" href="merchant_M003.html">
+          <div class="card-title">Carol Lee — DigitalParis</div>
+          <div class="card-meta">
+            France&nbsp;&nbsp;|&nbsp;&nbsp;
+            €1,999.87 revenue&nbsp;&nbsp;|&nbsp;&nbsp;
+            6 transactions
+          </div>
+        </a></div>
+</main>
+<footer>Generated by stage5.py &nbsp;|&nbsp; 2026-05-28 06:53:24</footer>
+</body>
+</html>

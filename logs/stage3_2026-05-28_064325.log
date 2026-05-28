@@ -1,0 +1,18 @@
+2026-05-28 06:43:25 [INFO] ============================================================
+2026-05-28 06:43:25 [INFO] Stage 3 started  (full reprocess)
+2026-05-28 06:43:25 [INFO] Database          /home/dkrysmann/projects/assesement_opp/stages.duckdb
+2026-05-28 06:43:25 [INFO] Source schema     stage_cleanup
+2026-05-28 06:43:25 [INFO] Output schema     stage_integrate
+2026-05-28 06:43:25 [INFO] ============================================================
+2026-05-28 06:43:25 [INFO] Schema 'stage_integrate' ready.
+2026-05-28 06:43:25 [INFO] Building 'stage_integrate.integrated_sales' ...
+2026-05-28 06:43:26 [INFO]   integrated_sales: 38 rows  |  FULL=38  PARTIAL=0
+2026-05-28 06:43:26 [INFO] 
+2026-05-28 06:43:26 [INFO] ============================================================
+2026-05-28 06:43:26 [INFO] SUMMARY
+2026-05-28 06:43:26 [INFO]   Table      : stage_integrate.integrated_sales
+2026-05-28 06:43:26 [INFO]   Total rows : 38
+2026-05-28 06:43:26 [INFO]   FULL joins : 38
+2026-05-28 06:43:26 [INFO]   PARTIAL    : 0
+2026-05-28 06:43:26 [INFO] ============================================================
+2026-05-28 06:43:26 [INFO] Stage 3 complete.

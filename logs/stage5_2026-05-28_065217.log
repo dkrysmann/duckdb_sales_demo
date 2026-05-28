@@ -1,0 +1,34 @@
+2026-05-28 06:52:17 [INFO] ============================================================
+2026-05-28 06:52:17 [INFO] Stage 5 started  (full reprocess)
+2026-05-28 06:52:17 [INFO] Database    /home/dkrysmann/projects/assesement_opp/stages.duckdb
+2026-05-28 06:52:17 [INFO] Output dir  /home/dkrysmann/projects/assesement_opp/reports
+2026-05-28 06:52:17 [INFO] ============================================================
+2026-05-28 06:52:17 [INFO]   Written: /home/dkrysmann/projects/assesement_opp/reports/index.html
+2026-05-28 06:52:17 [INFO]   Written: /home/dkrysmann/projects/assesement_opp/reports/sales_summary.html
+2026-05-28 06:52:17 [INFO]   Written: /home/dkrysmann/projects/assesement_opp/reports/bonus_report.html
+2026-05-28 06:52:17 [INFO]   Written: /home/dkrysmann/projects/assesement_opp/reports/churn_report.html
+2026-05-28 06:52:17 [ERROR] Stage 5 failed: Binder Error: Table "s" does not have a column named "customer_country"
+
+Candidate bindings: : "customer_id"
+
+LINE 5:                 MAX(s.customer_country) AS country,
+                            ^
+Traceback (most recent call last):
+  File "/home/dkrysmann/projects/assesement_opp/stage5.py", line 931, in main
+    n_merchants = build_merchant_pages(con, out_dir, generated_at, logger)
+  File "/home/dkrysmann/projects/assesement_opp/stage5.py", line 751, in build_merchant_pages
+    customers = con.execute(f"""
+                ~~~~~~~~~~~^^^^^
+        SELECT DISTINCT
+        ^^^^^^^^^^^^^^^
+    ...<13 lines>...
+        ORDER BY spend DESC
+        ^^^^^^^^^^^^^^^^^^^
+    """, [mid]).fetchall()
+    ^^^^^^^^^^^
+_duckdb.BinderException: Binder Error: Table "s" does not have a column named "customer_country"
+
+Candidate bindings: : "customer_id"
+
+LINE 5:                 MAX(s.customer_country) AS country,
+                            ^

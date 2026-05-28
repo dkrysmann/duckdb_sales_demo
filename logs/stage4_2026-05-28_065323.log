@@ -1,0 +1,27 @@
+2026-05-28 06:53:23 [INFO] ============================================================
+2026-05-28 06:53:23 [INFO] Stage 4 started  (full reprocess)
+2026-05-28 06:53:23 [INFO] Database          /home/dkrysmann/projects/assesement_opp/stages.duckdb
+2026-05-28 06:53:23 [INFO] Source schema     stage_integrate
+2026-05-28 06:53:23 [INFO] Output schema     stage_compute
+2026-05-28 06:53:23 [INFO] Inactivity days   1
+2026-05-28 06:53:23 [INFO] ============================================================
+2026-05-28 06:53:23 [INFO] Schema 'stage_compute' ready.
+2026-05-28 06:53:23 [INFO] Building 'stage_compute.sales_kpis' ...
+2026-05-28 06:53:23 [INFO]   sales_kpis: 20 rows.
+2026-05-28 06:53:23 [INFO] Building 'stage_compute.bonus_results' ...
+2026-05-28 06:53:23 [INFO]   per_sale_bonus: 38 rows  |  eligible=38  (100.0%)
+2026-05-28 06:53:23 [INFO]   merchant_bonus: 20 rows.
+2026-05-28 06:53:23 [INFO] Building 'stage_compute.customer_metrics' ...
+2026-05-28 06:53:23 [INFO]   customer_metrics: 10 customers.
+2026-05-28 06:53:23 [INFO] Building 'stage_compute.churn_flags' (inactivity_days=1) ...
+2026-05-28 06:53:23 [INFO]   churn_flags: 10 customers  |  churned=2  active=8  (reference_date=2026-05-27  threshold=1 days)
+2026-05-28 06:53:23 [INFO] 
+2026-05-28 06:53:23 [INFO] ============================================================
+2026-05-28 06:53:23 [INFO] SUMMARY
+2026-05-28 06:53:23 [INFO]   sales_kpis         : 20 store-day rows
+2026-05-28 06:53:23 [INFO]   per_sale_bonus     : 38 rows  (38 eligible)
+2026-05-28 06:53:23 [INFO]   merchant_bonus     : 20 merchant-day rows
+2026-05-28 06:53:23 [INFO]   customer_metrics   : 10 customers
+2026-05-28 06:53:23 [INFO]   churn_flags        : 10 customers  (2 churned)
+2026-05-28 06:53:23 [INFO] ============================================================
+2026-05-28 06:53:23 [INFO] Stage 4 complete.

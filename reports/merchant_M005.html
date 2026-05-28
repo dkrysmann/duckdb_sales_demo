@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emma Wilson — ByteManchester</title>
+<style>
+:root {
+    --brand:   #1a3a5c;
+    --accent:  #2e86c1;
+    --light:   #eaf4fb;
+    --pass:    #1e8449;
+    --warn:    #d68910;
+    --fail:    #c0392b;
+    --muted:   #7f8c8d;
+    --border:  #d5d8dc;
+    --bg:      #f8f9fa;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    background: var(--bg);
+    color: #2c3e50;
+    line-height: 1.5;
+}
+header {
+    background: var(--brand);
+    color: #fff;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+header h1 { font-size: 1.3rem; font-weight: 600; }
+header .sub { font-size: 0.8rem; opacity: 0.7; margin-top: 2px; }
+nav.breadcrumb {
+    background: var(--light);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 32px;
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+nav.breadcrumb a { color: var(--accent); text-decoration: none; }
+nav.breadcrumb a:hover { text-decoration: underline; }
+main { padding: 24px 32px; max-width: 1280px; }
+h2 { font-size: 1.1rem; font-weight: 600; color: var(--brand);
+     margin: 24px 0 12px; border-bottom: 2px solid var(--accent);
+     padding-bottom: 4px; }
+h3 { font-size: 0.95rem; font-weight: 600; color: var(--brand); margin: 20px 0 8px; }
+.kpi-row {
+    display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0 24px;
+}
+.kpi {
+    background: #fff; border: 1px solid var(--border); border-radius: 6px;
+    padding: 16px 24px; min-width: 160px; flex: 1;
+}
+.kpi .val { font-size: 1.6rem; font-weight: 700; color: var(--brand); }
+.kpi .lbl { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+table {
+    width: 100%; border-collapse: collapse;
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 6px; overflow: hidden; margin-bottom: 24px;
+    font-size: 0.88rem;
+}
+thead th {
+    background: var(--brand); color: #fff;
+    padding: 9px 12px; text-align: left; font-weight: 600;
+}
+tbody tr:nth-child(even) { background: var(--light); }
+tbody tr:hover { background: #d6eaf8; }
+td, tbody th { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 0.75rem; font-weight: 600;
+}
+.badge-pass  { background: #d5f5e3; color: var(--pass); }
+.badge-warn  { background: #fdebd0; color: var(--warn); }
+.badge-fail  { background: #fadbd8; color: var(--fail); }
+.badge-churn { background: #fadbd8; color: var(--fail); }
+.badge-active{ background: #d5f5e3; color: var(--pass); }
+.card-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px; margin: 16px 0 28px;
+}
+.card {
+    background: #fff; border: 1px solid var(--border); border-radius: 6px;
+    padding: 16px; text-decoration: none; color: inherit;
+    transition: box-shadow .15s;
+}
+.card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+.card .card-title { font-weight: 600; color: var(--accent); margin-bottom: 6px; }
+.card .card-meta  { font-size: 0.78rem; color: var(--muted); }
+footer {
+    margin-top: 40px; padding: 16px 32px;
+    border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="sub">Sales Pipeline Report</div>
+    <h1>Emma Wilson — ByteManchester</h1>
+  </div>
+  <div style="text-align:right">
+    <div class="sub">Generated</div>
+    <div style="font-size:.85rem">2026-05-28 06:53:24</div>
+  </div>
+</header>
+<nav class="breadcrumb"><a href="index.html">Home</a> › Emma Wilson — ByteManchester</nav>
+<main>
+<h2>Emma Wilson — ByteManchester</h2><p style='color:var(--muted);margin:-8px 0 16px'>United Kingdom</p><div class="kpi-row"><div class="kpi"><div class="val">€7.00</div><div class="lbl">Total Revenue</div></div><div class="kpi"><div class="val">9</div><div class="lbl">Transactions</div></div><div class="kpi"><div class="val">4</div><div class="lbl">Customers</div></div><div class="kpi"><div class="val">€443.00</div><div class="lbl">Bonus Earned</div></div><div class="kpi"><div class="val">100.0%</div><div class="lbl">Bonus Hit Rate</div></div></div><h2>Daily Sales</h2><table><thead><tr><th>Sale Date</th><th>Transactions</th><th>Units Sold</th><th>Customers</th><th>Revenue</th><th>Avg Order</th><th>Warn Rows</th></tr></thead><tbody><tr><td>2026-05-25</td><td class="num">3</td><td class="num">9</td><td class="num">2</td><td class="num">€479.91</td><td class="num">€159.97</td><td class="num">0</td></tr><tr><td>2026-05-26</td><td class="num">1</td><td class="num">1</td><td class="num">1</td><td class="num">€999.99</td><td class="num">€999.99</td><td class="num">0</td></tr><tr><td>2026-05-26</td><td class="num">2</td><td class="num">3</td><td class="num">1</td><td class="num">€259.97</td><td class="num">€129.99</td><td class="num">0</td></tr><tr><td>2026-05-27</td><td class="num">1</td><td class="num">2</td><td class="num">1</td><td class="num">€899.98</td><td class="num">€899.98</td><td class="num">0</td></tr><tr><td>2026-05-27</td><td class="num">2</td><td class="num">5</td><td class="num">2</td><td class="num">€1,119.95</td><td class="num">€559.98</td><td class="num">0</td></tr></tbody></table><h2>Product Breakdown</h2><table><thead><tr><th>Product ID</th><th>Product Name</th><th>Sales</th><th>Units</th><th>Revenue</th><th>Bonus Earned</th><th>Eligible Sales</th></tr></thead><tbody><tr><td>P001</td><td>Laptop</td><td class="num">2</td><td class="num">2</td><td class="num">€1,999.98</td><td class="num">€48.00</td><td class="num">2</td></tr><tr><td>P004</td><td>Monitor</td><td class="num">1</td><td class="num">2</td><td class="num">€899.98</td><td class="num">€30.00</td><td class="num">1</td></tr><tr><td>P005</td><td>Headset</td><td class="num">2</td><td class="num">4</td><td class="num">€319.96</td><td class="num">€115.00</td><td class="num">2</td></tr><tr><td>P003</td><td>Keyboard</td><td class="num">2</td><td class="num">3</td><td class="num">€269.97</td><td class="num">€150.00</td><td class="num">2</td></tr><tr><td>P002</td><td>Mouse</td><td class="num">2</td><td class="num">9</td><td class="num">€269.91</td><td class="num">€100.00</td><td class="num">2</td></tr></tbody></table><h2>Customer List</h2><table><thead><tr><th>Customer ID</th><th>Name</th><th>Country</th><th>Purchases</th><th>Total Spend</th><th>First Purchase</th><th>Last Purchase</th><th>Status</th></tr></thead><tbody><tr><td>C005</td><td>James Brown</td><td>United Kingdom</td><td class="num">4</td><td class="num">€2,289.89</td><td>2026-05-25</td><td>2026-05-27</td><td><span class="badge badge-active">Active</span></td></tr><tr><td>C010</td><td>Carlos Mendez</td><td>Mexico</td><td class="num">1</td><td class="num">€999.99</td><td>2026-05-27</td><td>2026-05-27</td><td><span class="badge badge-active">Active</span></td></tr><tr><td>C009</td><td>Li Wei</td><td>China</td><td class="num">3</td><td class="num">€379.93</td><td>2026-05-26</td><td>2026-05-27</td><td><span class="badge badge-active">Active</span></td></tr><tr><td>C008</td><td>Priya Patel</td><td>United Kingdom</td><td class="num">1</td><td class="num">€89.99</td><td>2026-05-25</td><td>2026-05-25</td><td><span class="badge badge-churn">Churned</span></td></tr></tbody></table>
+</main>
+<footer>Generated by stage5.py &nbsp;|&nbsp; 2026-05-28 06:53:24</footer>
+</body>
+</html>
