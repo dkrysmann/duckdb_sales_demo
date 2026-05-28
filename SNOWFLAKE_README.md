@@ -27,15 +27,23 @@ Terraform configuration in `terraform/s3-restricted/` and the Python producer in
 │    ├─ Stage: S3_STAGE       → s3://opp-raw-data-dev/            │
 │    └─ Stage: S3_SALES_STAGE → s3://opp-sales-data-dev/         │
 │                                                                 │
-│  File Format: JSON_FORMAT                                       │
+│  File Formats                                                   │
+│    ├─ JSON_FORMAT        (STRIP_OUTER_ARRAY=TRUE)  ← CONTRACTS  │
+│    └─ JSON_FORMAT_SINGLE (STRIP_OUTER_ARRAY=FALSE) ← unused     │
 │                                                                 │
 │  Table: CONTRACTS                                               │
 │    └─ Snowpipe: CONTRACTS_PIPE (auto_ingest via SQS)            │
 │         └─ Source: S3_STAGE/hubspot/contacts/                   │
 │                                                                 │
-│  Table: SHELLY_PWR                                              │
-│    └─ Snowpipe Streaming (Python producer)                      │
+│  Table: SHELLY_PWR (raw_data VARIANT, ingestion_timestamp,      │
+│                     source_path)                                │
+│    └─ Python producer (shelly_streaming_producer.py)            │
 │         └─ Source: s3://piaware/shelly/main_power/status/       │
+│                                                                 │
+│  Service account: SHELLY_STREAMER                               │
+│    └─ Role: SHELLY_STREAMING_ROLE                               │
+│         └─ USAGE: PREP, TESTS, COMPUTE_WH                       │
+│         └─ INSERT, SELECT: SHELLY_PWR                           │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -47,14 +55,14 @@ Terraform configuration in `terraform/s3-restricted/` and the Python producer in
 
 Assumed by Snowflake's internal IAM user to read from S3. Created by Terraform.
 
-| Attribute        | Value |
-|------------------|-------|
-| Role ARN         | `arn:aws:iam::000290283155:role/darek-snowflake-access-role` |
+| Attribute | Value |
+|-----------|-------|
+| Role ARN | `arn:aws:iam::000290283155:role/darek-snowflake-access-role` |
 | Trusted principal | `arn:aws:iam::606065959540:user/af3m1000-s` (Snowflake's AWS user) |
-| Trust condition  | `sts:ExternalId = GPB39838_SFCRole=3_RDifVRYJKyZ0fBiGPOJSydXKQPg=` |
+| Trust condition | `sts:ExternalId = GPB39838_SFCRole=3_RDifVRYJKyZ0fBiGPOJSydXKQPg=` |
 
 The ExternalId prevents the [confused deputy problem](https://docs.aws.amazon.com/IAM/latest/UserGuide/confused-deputy.html).
-It is obtained from Snowflake by running `DESC INTEGRATION S3_INTEGRATION` and reading `STORAGE_AWS_EXTERNAL_ID`.
+Obtained by running `DESC INTEGRATION S3_INTEGRATION` and reading `STORAGE_AWS_EXTERNAL_ID`.
 
 ### IAM Policy — `darek-snowflake-access-role-s3-policy`
 
@@ -63,7 +71,7 @@ Attached to the role above. Grants read-only access to both S3 buckets.
 | Action | Resources |
 |--------|-----------|
 | `s3:ListBucket`, `s3:GetBucketLocation` | `opp-raw-data-dev`, `opp-sales-data-dev` |
-| `s3:GetObject`, `s3:GetObjectVersion`   | `opp-raw-data-dev/*`, `opp-sales-data-dev/*` |
+| `s3:GetObject`, `s3:GetObjectVersion` | `opp-raw-data-dev/*`, `opp-sales-data-dev/*` |
 
 ---
 
@@ -105,23 +113,12 @@ Both stages use `S3_INTEGRATION` for authentication — no credentials stored in
 > terraform import snowflake_stage.s3_stage PREP|TESTS|S3_STAGE
 > ```
 
-### File Format — `JSON_FORMAT`
+### File Formats
 
-Used by `CONTRACTS_PIPE` and `INFER_SCHEMA` calls.
-
-```sql
-DESC FILE FORMAT PREP.TESTS.JSON_FORMAT;
-```
-
-| Setting | Value |
-|---------|-------|
-| Type | `JSON` |
-| `STRIP_OUTER_ARRAY` | `TRUE` — expects JSON arrays `[{...}, ...]` |
-| `NULL_IF` | `[]` |
-
-> **Note:** `SHELLY_PWR` uses a separate file format `JSON_FORMAT_SINGLE` (`STRIP_OUTER_ARRAY = FALSE`)
-> because Shelly files contain a single JSON object per file, not an array.
-> `JSON_FORMAT` (with `STRIP_OUTER_ARRAY = TRUE`) is used only by `CONTRACTS_PIPE`.
+| Name | `STRIP_OUTER_ARRAY` | Used by |
+|------|---------------------|---------|
+| `JSON_FORMAT` | `TRUE` — expects arrays `[{...}]` | `CONTRACTS_PIPE` |
+| `JSON_FORMAT_SINGLE` | `FALSE` — single JSON object per file | Reserved (not currently used) |
 
 ---
 
@@ -143,17 +140,28 @@ terraform apply
 
 ### `PREP.TESTS.SHELLY_PWR`
 
-Schema derived from a Shelly power monitor sample file using `INFER_SCHEMA`.
-Two additional technical columns are added after table creation:
+Fixed schema — raw JSON stored as VARIANT alongside two typed technical columns.
+No `INFER_SCHEMA` is used; the schema is declared explicitly in Terraform.
 
 | Column | Type | Source |
 |--------|------|--------|
-| _(all inferred columns)_ | _(typed from JSON)_ | JSON fields via INFER_SCHEMA |
-| `ingestion_timestamp` | `TIMESTAMP_LTZ` | `ts_epoch` field converted by the Python producer |
+| `raw_data` | `VARIANT` | Full JSON object from the Shelly device, serialised by the Python producer |
+| `ingestion_timestamp` | `TIMESTAMP_LTZ` | `ts_epoch` (milliseconds) converted to UTC by the Python producer |
 | `source_path` | `VARCHAR` | Full S3 URI of the source file, set by the Python producer |
 
-- **Source sample:** `S3_STAGE/streaming/00001c22-b777-4f42-b136-a7adfcdef066.json`
-- **Loaded by:** `shelly_streaming_producer.py` (Snowpipe Streaming API)
+- **Loaded by:** `shelly_streaming_producer.py`
+
+Query sensor fields using Snowflake VARIANT dot-notation:
+```sql
+SELECT raw_data:apower::FLOAT   AS active_power_w,
+       raw_data:voltage::FLOAT  AS voltage_v,
+       raw_data:current::FLOAT  AS current_a,
+       ingestion_timestamp,
+       source_path
+FROM PREP.TESTS.SHELLY_PWR
+ORDER BY ingestion_timestamp DESC
+LIMIT 20;
+```
 
 ---
 
@@ -170,32 +178,47 @@ File-based auto-ingest pipe. Triggered automatically when new files land in S3.
 
 The S3 event notification on `opp-raw-data-dev` (prefix `hubspot/contacts/`, suffix `.json`)
 is created by Terraform (`aws_s3_bucket_notification.contracts_pipe`) and wired to the SQS
-queue ARN that Snowflake provisions for the pipe. The queue ARN is exposed as a Terraform
-output:
+queue ARN that Snowflake provisions for the pipe:
+
 ```bash
 terraform output contracts_pipe_notification_channel
 ```
 
 ---
 
-## Snowpipe Streaming — `SHELLY_PWR` Python Producer
+## Snowflake Service Account — `SHELLY_STREAMER`
 
-The `shelly_streaming_producer.py` script pushes rows directly into `SHELLY_PWR` via the
-Snowpipe Streaming REST API. No S3 staging or SQS notification is involved — rows arrive
-in Snowflake within seconds.
+A dedicated least-privilege account for the Python producer. No password — RSA key-pair only.
+
+| Resource | Name |
+|----------|------|
+| User | `SHELLY_STREAMER` |
+| Role | `SHELLY_STREAMING_ROLE` |
+| Warehouse | `COMPUTE_WH` |
+| Privileges | `USAGE` on `PREP`, `TESTS`, `COMPUTE_WH`; `INSERT`, `SELECT` on `SHELLY_PWR` |
+
+All resources are managed by Terraform in `snowflake_streaming_user.tf`.
+
+---
+
+## Python Producer — `shelly_streaming_producer.py`
+
+Reads Shelly power monitor JSON from S3 and inserts rows into `SHELLY_PWR` using
+`snowflake-connector-python` with RSA key-pair authentication. Runs as a batch job.
 
 ```
 s3://piaware/shelly/main_power/status/year=YYYY/month=MM/day=DD/
     │
-    ├─ boto3 list + read each *.json file
-    ├─ convert ts_epoch → ingestion_timestamp (UTC TIMESTAMP_LTZ)
+    ├─ boto3 list + read each *.json file (single-object or NDJSON per file)
+    ├─ wrap full JSON as raw_data (VARIANT)
+    ├─ convert ts_epoch (milliseconds) → ingestion_timestamp (UTC TIMESTAMP_LTZ)
     ├─ set source_path = full S3 URI
-    └─ channel.insert_rows() → Snowpipe Streaming API → SHELLY_PWR
+    └─ cursor.execute(INSERT ... SELECT PARSE_JSON(%s), ...) × batch_size
 ```
 
 ### Manual Step 1 — Generate an RSA Key Pair
 
-Snowpipe Streaming requires key-pair authentication (password auth is not supported).
+Snowflake key-pair authentication requires an RSA private key (no passphrase).
 
 ```bash
 # Generate a 2048-bit RSA private key (PKCS#8, no passphrase)
@@ -210,22 +233,32 @@ chmod 600 ~/.ssh/snowflake_rsa_key.p8
 
 ### Manual Step 2 — Register the Public Key in Snowflake
 
-Connect to Snowflake as ACCOUNTADMIN and run:
+Connect to Snowflake as ACCOUNTADMIN and run for **both** accounts that use the key:
 
 ```sql
--- Copy the public key content between the header and footer lines
--- (remove the -----BEGIN PUBLIC KEY----- and -----END PUBLIC KEY----- lines)
-ALTER USER dkrysmann SET RSA_PUBLIC_KEY='<paste public key content here>';
+-- For your admin/Terraform user
+ALTER USER dkrysmann SET RSA_PUBLIC_KEY='<paste public key content — no header/footer lines>';
 
--- Verify
+-- For the dedicated streaming service account
+ALTER USER SHELLY_STREAMER SET RSA_PUBLIC_KEY='<same or different public key>';
+
+-- Verify — RSA_PUBLIC_KEY_FP should be populated
 DESC USER dkrysmann;
--- RSA_PUBLIC_KEY_FP should now be populated
+DESC USER SHELLY_STREAMER;
 ```
 
-### Manual Step 3 — Grant table privileges to the streaming user
+To extract the public key content (no PEM header/footer):
+```bash
+openssl rsa -in ~/.ssh/snowflake_rsa_key.p8 -pubout 2>/dev/null | grep -v '\-\-\-' | tr -d '\n'
+```
+
+### Manual Step 3 — Grant Warehouse Access
+
+Until `terraform apply` has been run with the latest `snowflake_streaming_user.tf`,
+grant warehouse access manually:
 
 ```sql
-GRANT INSERT, SELECT ON TABLE PREP.TESTS.SHELLY_PWR TO ROLE ACCOUNTADMIN;
+GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE SHELLY_STREAMING_ROLE;
 ```
 
 ### Running the Producer
@@ -238,14 +271,15 @@ pip install -r requirements.txt
 Set environment variables and run:
 ```bash
 export SNOWFLAKE_ACCOUNT="AYWPDSQ-ABB81033"
-export SNOWFLAKE_USER="dkrysmann"
+export SNOWFLAKE_USER="SHELLY_STREAMER"
 export SNOWFLAKE_PRIVATE_KEY_PATH="$HOME/.ssh/snowflake_rsa_key.p8"
+
+# Optional overrides (defaults shown)
 export SNOWFLAKE_DATABASE="PREP"
 export SNOWFLAKE_SCHEMA="TESTS"
 export SNOWFLAKE_TABLE="SHELLY_PWR"
-export SNOWFLAKE_ROLE="ACCOUNTADMIN"
-
-# Optional — override source location
+export SNOWFLAKE_ROLE="SHELLY_STREAMING_ROLE"
+export SNOWFLAKE_WAREHOUSE="COMPUTE_WH"
 export S3_BUCKET="piaware"
 export S3_PREFIX="shelly/main_power/status/year=2026/month=05/day=28/"
 
@@ -258,13 +292,21 @@ python shelly_streaming_producer.py
 |----------|----------|---------|-------------|
 | `SNOWFLAKE_ACCOUNT` | Yes | — | Account locator, e.g. `AYWPDSQ-ABB81033` |
 | `SNOWFLAKE_USER` | Yes | — | Snowflake username |
-| `SNOWFLAKE_PRIVATE_KEY_PATH` | Yes | — | Path to `.p8` RSA private key |
+| `SNOWFLAKE_PRIVATE_KEY_PATH` | Yes | — | Path to `.p8` RSA private key (no passphrase) |
 | `SNOWFLAKE_DATABASE` | No | `PREP` | Target database |
 | `SNOWFLAKE_SCHEMA` | No | `TESTS` | Target schema |
 | `SNOWFLAKE_TABLE` | No | `SHELLY_PWR` | Target table |
-| `SNOWFLAKE_ROLE` | No | `ACCOUNTADMIN` | Snowflake role |
+| `SNOWFLAKE_ROLE` | No | `SHELLY_STREAMING_ROLE` | Snowflake role |
+| `SNOWFLAKE_WAREHOUSE` | No | `COMPUTE_WH` | Warehouse for query execution |
 | `S3_BUCKET` | No | `piaware` | Source S3 bucket |
 | `S3_PREFIX` | No | `shelly/main_power/status/year=2026/month=05/day=28/` | Source S3 prefix |
+
+> **Important:** Do not set `SNOWFLAKE_PRIVATE_KEY_PATH` in the shell when running
+> `terraform plan` / `terraform apply`. The Snowflake Terraform provider also reads that
+> env var and it conflicts with the `private_key = file(...)` argument in the provider block.
+> ```bash
+> unset SNOWFLAKE_PRIVATE_KEY_PATH   # before terraform commands
+> ```
 
 ---
 
@@ -275,13 +317,10 @@ python shelly_streaming_producer.py
 ```bash
 cd terraform/s3-restricted
 
-# Set sensitive values as environment variables (do not put in terraform.tfvars)
+# Required sensitive variable — do not put in terraform.tfvars
 export TF_VAR_snowflake_external_id="GPB39838_SFCRole=3_RDifVRYJKyZ0fBiGPOJSydXKQPg="
 
-# IMPORTANT: unset SNOWFLAKE_PRIVATE_KEY_PATH if it is set in your shell.
-# The Snowflake provider reads it automatically as `private_key_path`, which
-# conflicts with the `private_key = file(...)` argument in snowflake.tf.
-# That env var is only needed by the Python producer, not by Terraform.
+# IMPORTANT: unset this before running Terraform (conflicts with private_key in provider)
 unset SNOWFLAKE_PRIVATE_KEY_PATH
 
 terraform init
@@ -291,7 +330,7 @@ terraform apply
 
 ### Importing Pre-existing Resources
 
-If the storage integration or stage already existed before Terraform managed them:
+If the storage integration, stage, or IAM role already existed before Terraform managed them:
 
 ```bash
 terraform import snowflake_storage_integration.this S3_INTEGRATION
@@ -306,6 +345,7 @@ terraform import aws_iam_role.snowflake darek-snowflake-access-role
 | `snowflake_organization_name` | `AYWPDSQ` |
 | `snowflake_account_name` | `ABB81033` |
 | `snowflake_user` | `dkrysmann` |
+| `snowflake_private_key_path` | `~/.ssh/snowflake_rsa_key.p8` |
 | `snowflake_role` | `ACCOUNTADMIN` |
 | `snowflake_integration_name` | `S3_INTEGRATION` |
 | `snowflake_database` | `PREP` |
@@ -318,8 +358,7 @@ Sensitive variables — set via env vars, never commit to git:
 
 | Env variable | Description |
 |--------------|-------------|
-| `TF_VAR_snowflake_password` | Snowflake password for Terraform provider |
-| `TF_VAR_snowflake_external_id` | `STORAGE_AWS_EXTERNAL_ID` from `DESC INTEGRATION` |
+| `TF_VAR_snowflake_external_id` | `STORAGE_AWS_EXTERNAL_ID` from `DESC INTEGRATION S3_INTEGRATION` |
 
 ---
 
@@ -335,7 +374,7 @@ SHOW STAGES IN SCHEMA PREP.TESTS;
 -- Check CONTRACTS table schema
 DESC TABLE PREP.TESTS.CONTRACTS;
 
--- Check SHELLY_PWR table schema (including technical columns)
+-- Check SHELLY_PWR table schema
 DESC TABLE PREP.TESTS.SHELLY_PWR;
 
 -- Check Snowpipe status
@@ -344,13 +383,25 @@ SELECT SYSTEM$PIPE_STATUS('PREP.TESTS.CONTRACTS_PIPE');
 -- Preview recently loaded contracts
 SELECT * FROM PREP.TESTS.CONTRACTS LIMIT 10;
 
--- Preview SHELLY_PWR with technical columns
-SELECT source_path, ingestion_timestamp, * FROM PREP.TESTS.SHELLY_PWR
+-- Preview SHELLY_PWR — extract typed fields from VARIANT
+SELECT raw_data:apower::FLOAT  AS active_power_w,
+       raw_data:voltage::FLOAT AS voltage_v,
+       raw_data:freq::FLOAT    AS freq_hz,
+       ingestion_timestamp,
+       source_path
+FROM PREP.TESTS.SHELLY_PWR
 ORDER BY ingestion_timestamp DESC
 LIMIT 20;
 
--- Check Snowpipe Streaming channel lag (run after producer)
-SELECT SYSTEM$VERIFY_STORAGE_INTEGRATION('S3_INTEGRATION');
+-- Count rows by source file
+SELECT source_path, COUNT(*) AS rows
+FROM PREP.TESTS.SHELLY_PWR
+GROUP BY source_path
+ORDER BY rows DESC;
+
+-- Check streaming service account
+DESC USER SHELLY_STREAMER;
+SHOW GRANTS TO ROLE SHELLY_STREAMING_ROLE;
 ```
 
 ---
@@ -359,9 +410,12 @@ SELECT SYSTEM$VERIFY_STORAGE_INTEGRATION('S3_INTEGRATION');
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `"private_key_path": conflicts with private_key` | `SNOWFLAKE_PRIVATE_KEY_PATH` env var is set — provider picks it up as `private_key_path`, conflicting with `private_key = file(...)` | Run `unset SNOWFLAKE_PRIVATE_KEY_PATH` before `terraform plan/apply` |
+| `"private_key_path": conflicts with private_key` | `SNOWFLAKE_PRIVATE_KEY_PATH` env var is set — the Terraform provider also reads it, conflicting with `private_key = file(...)` | `unset SNOWFLAKE_PRIVATE_KEY_PATH` before `terraform plan/apply` |
+| `260002: password is empty` | Provider defaulting to password auth instead of RSA | Ensure `authenticator = "JWT"` is set in `provider "snowflake"` block in `snowflake.tf` |
+| `No active warehouse selected` | `SHELLY_STREAMING_ROLE` lacks `USAGE ON WAREHOUSE COMPUTE_WH` | Run `GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE SHELLY_STREAMING_ROLE;` then `terraform apply` |
 | `AccessDenied: GetPublicAccessBlock` | `aws-user` not in bucket policy allow list | Add to `admin_principals` in `terraform.tfvars` and re-apply |
-| `Invalid template: template must be a non-null JSON array` | `INFER_SCHEMA` returned no rows — `STRIP_OUTER_ARRAY` mismatch | Use `(TYPE = JSON STRIP_OUTER_ARRAY = FALSE)` inline if files are single objects |
-| `MalformedPolicyDocument: Invalid principal` | IAM user/role referenced in trust policy does not exist | Remove the non-existent principal from `*_trusted_principals` in `terraform.tfvars` |
-| `EntityAlreadyExists` on IAM role | Role exists in AWS but not in Terraform state | Run `terraform import aws_iam_role.snowflake <role-name>` |
-| Snowpipe Streaming auth failure | RSA key not registered or wrong user | Verify with `DESC USER <user>` — `RSA_PUBLIC_KEY_FP` must be set |
+| `Invalid template: template must be a non-null JSON array` | `INFER_SCHEMA` returned no rows — sample file missing or wrong stage | `SHELLY_PWR` now uses a fixed DDL — this error only applies to `CONTRACTS`; check that the HubSpot sample file exists at the stage path |
+| `MalformedPolicyDocument: Invalid principal` | IAM user/role in trust policy does not exist | Remove the non-existent principal from `*_trusted_principals` in `terraform.tfvars` |
+| `EntityAlreadyExists` on IAM role | Role exists in AWS but not in Terraform state | `terraform import aws_iam_role.snowflake <role-name>` |
+| `252001: Failed to rewrite multi-row insert` | `executemany` with `PARSE_JSON()` can't be rewritten as multi-row | Producer uses a `for` loop over `cursor.execute()` — `executemany` is not used |
+| `KeyError: 'SNOWFLAKE_ACCOUNT'` | Required env vars not exported | `export SNOWFLAKE_ACCOUNT=AYWPDSQ-ABB81033` etc. before running the producer |

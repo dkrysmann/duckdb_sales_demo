@@ -230,11 +230,12 @@ python stage5.py --output-dir /tmp/my_report  # custom output directory
 
 ```
 assesement_opp/
-├── pipeline.py          ← Stage 1: ingest
-├── stage2.py            ← Stage 2: cleanup & validation
-├── stage3.py            ← Stage 3: integration
-├── stage4.py            ← Stage 4: compute
-├── stage5.py            ← Stage 5: report
+├── pipeline.py                  ← Stage 1: ingest
+├── stage2.py                    ← Stage 2: cleanup & validation
+├── stage3.py                    ← Stage 3: integration
+├── stage4.py                    ← Stage 4: compute
+├── stage5.py                    ← Stage 5: report
+├── shelly_streaming_producer.py ← Shelly IoT → Snowflake batch producer
 │
 ├── requirements.txt     ← Python dependencies
 ├── stages.duckdb        ← Single DuckDB file (all schemas)
@@ -260,13 +261,14 @@ assesement_opp/
 │   └── stage5_YYYY-MM-DD_HHMMSS.log
 │
 ├── terraform/
-│   └── s3-restricted/   ← AWS S3 Terraform template (read/write IAM roles)
+│   └── s3-restricted/   ← AWS S3 + Snowflake integration Terraform
 │
 ├── INGEST_README.md     ← Stage 1 detailed documentation
 ├── STAGE2_README.md     ← Stage 2 detailed documentation
 ├── STAGE3_README.md     ← Stage 3 detailed documentation
 ├── STAGE4_README.md     ← Stage 4 detailed documentation
-└── STAGE5_README.md     ← Stage 5 detailed documentation
+├── STAGE5_README.md     ← Stage 5 detailed documentation
+└── SNOWFLAKE_README.md  ← Snowflake integration documentation
 ```
 
 ---
@@ -279,6 +281,9 @@ assesement_opp/
 | `pycountry` | 26.2.16 | Stage 2 — ISO 3166-1 country list |
 | `rapidfuzz` | 3.14.5 | Stage 2 — fuzzy country matching |
 | `openpyxl` | 3.1.5 | Stage 2 — Excel compatibility |
+| `snowflake-connector-python` | ≥ 3.0.0 | Shelly producer — Snowflake inserts |
+| `boto3` | ≥ 1.34.0 | Shelly producer — S3 reads |
+| `cryptography` | ≥ 42.0.0 | Shelly producer — RSA key loading |
 
 ```bash
 pip install -r requirements.txt
@@ -342,14 +347,15 @@ logs/
 
 ---
 
-## Terraform — AWS S3 Deployment
+## Terraform — AWS S3 + Snowflake Deployment
 
-A Terraform template is included under `terraform/s3-restricted/` for deploying
-a production-grade S3 bucket with restricted IAM access.
+A Terraform configuration is included under `terraform/s3-restricted/` for deploying
+a production-grade S3 bucket with restricted IAM access and a full Snowflake integration.
 
-→ [terraform/s3-restricted/README.md](terraform/s3-restricted/README.md)
+→ [terraform/s3-restricted/README.md](terraform/s3-restricted/README.md)  
+→ [SNOWFLAKE_README.md](SNOWFLAKE_README.md) — Snowflake resources, producer setup, troubleshooting
 
-Features:
+**S3 features:**
 - Two IAM roles: **reader** (`GetObject`, `ListBucket`, …) and **writer**
   (read + `PutObject`, `DeleteObject`, …)
 - Bucket policy: `Effect: Deny + ArnNotLike` — overrides any identity-policy
@@ -357,9 +363,17 @@ Features:
 - AES-256 server-side encryption, public access block (all 4 flags), optional
   versioning and access logging
 
+**Snowflake features:**
+- Storage integration (`S3_INTEGRATION`) + external stages for both S3 buckets
+- `CONTRACTS` table with schema inferred from HubSpot JSON; auto-ingest via Snowpipe
+- `SHELLY_PWR` table (VARIANT schema) loaded by `shelly_streaming_producer.py`
+- Dedicated service account `SHELLY_STREAMER` with least-privilege role
+
 ```bash
 cd terraform/s3-restricted
 cp terraform.tfvars.example terraform.tfvars
-# edit terraform.tfvars with your bucket name and trusted principals
+# edit terraform.tfvars — see SNOWFLAKE_README.md for required variables
+export TF_VAR_snowflake_external_id="..."
+unset SNOWFLAKE_PRIVATE_KEY_PATH   # must not be set during terraform runs
 terraform init && terraform apply
 ```
