@@ -1,13 +1,13 @@
 # ---------------------------------------------------------------------------
-# main.tf — S3-bucket afgeschermd tot twee IAM-rollen
+# main.tf — S3 bucket restricted to two IAM roles
 #
-# Architectuur:
-#   • S3-bucket met versleuteling (AES-256) en blokkade van openbare toegang
-#   • Bucketbeleid: WEIGER alles voor iedereen behalve leesrol, schrijfrol
-#     en het AWS-account zelf (om vergrendeling te voorkomen)
-#   • Leesrol: GetObject, ListBucket, GetBucketLocation
-#   • Schrijfrol: PutObject, DeleteObject, ListBucket, GetObject, GetBucketLocation
-#   • Geen gedeeld wachtwoord of toegangssleutel — uitsluitend IAM-rollen
+# Architecture:
+#   • S3 bucket with AES-256 encryption and public access block
+#   • Bucket policy: DENY everything for everyone except the read role,
+#     write role, and the AWS account root (to prevent lock-out)
+#   • Read role:  GetObject, ListBucket, GetBucketLocation
+#   • Write role: PutObject, DeleteObject, ListBucket, GetObject, GetBucketLocation
+#   • No shared passwords or access keys — IAM roles only
 # ---------------------------------------------------------------------------
 
 terraform {
@@ -17,6 +17,10 @@ terraform {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 5.0"
+    }
+    snowflake = {
+      source  = "Snowflake-Labs/snowflake"
+      version = "~> 0.94"
     }
   }
 }
@@ -33,19 +37,25 @@ provider "aws" {
   }
 }
 
-# Haal het huidige AWS-account-ID op (nodig voor ARN-constructie)
+# Retrieve the current AWS account ID (needed for ARN construction)
 data "aws_caller_identity" "current" {}
 
 locals {
-  account_id    = data.aws_caller_identity.current.account_id
-  reader_arn    = "arn:aws:iam::${local.account_id}:role/${var.reader_role_name}"
-  writer_arn    = "arn:aws:iam::${local.account_id}:role/${var.writer_role_name}"
-  account_root  = "arn:aws:iam::${local.account_id}:root"
-  bucket_arn    = "arn:aws:s3:::${var.bucket_name}"
+  account_id   = data.aws_caller_identity.current.account_id
+  reader_arn   = "arn:aws:iam::${local.account_id}:role/${var.reader_role_name}"
+  writer_arn   = "arn:aws:iam::${local.account_id}:role/${var.writer_role_name}"
+  account_root = "arn:aws:iam::${local.account_id}:root"
+  bucket_arn   = "arn:aws:s3:::${var.bucket_name}"
+
+  # Combined list of principals exempt from the bucket-wide deny
+  allowed_principals = concat(
+    [local.reader_arn, local.writer_arn, local.account_root],
+    var.admin_principals,
+  )
 }
 
 # ===========================================================================
-# S3-bucket
+# S3 Bucket
 # ===========================================================================
 
 resource "aws_s3_bucket" "this" {
@@ -57,7 +67,7 @@ resource "aws_s3_bucket" "this" {
   }
 }
 
-# --- Versiebeheer ----------------------------------------------------------
+# --- Versioning ------------------------------------------------------------
 resource "aws_s3_bucket_versioning" "this" {
   bucket = aws_s3_bucket.this.id
 
@@ -66,7 +76,7 @@ resource "aws_s3_bucket_versioning" "this" {
   }
 }
 
-# --- Versleuteling (server-side, AES-256) ----------------------------------
+# --- Encryption (server-side, AES-256) -------------------------------------
 resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
   bucket = aws_s3_bucket.this.id
 
@@ -78,7 +88,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
   }
 }
 
-# --- Blokkeer ALLE openbare toegang ----------------------------------------
+# --- Block ALL public access -----------------------------------------------
 resource "aws_s3_bucket_public_access_block" "this" {
   bucket = aws_s3_bucket.this.id
 
@@ -88,7 +98,7 @@ resource "aws_s3_bucket_public_access_block" "this" {
   restrict_public_buckets = true
 }
 
-# --- Toegangslogs (optioneel) ----------------------------------------------
+# --- Access logging (optional) ---------------------------------------------
 resource "aws_s3_bucket_logging" "this" {
   count = var.log_bucket != "" ? 1 : 0
 
@@ -98,20 +108,20 @@ resource "aws_s3_bucket_logging" "this" {
 }
 
 # ===========================================================================
-# Bucketbeleid — weiger iedereen behalve leesrol, schrijfrol en accountroot
+# Bucket policy — deny everyone except the read role, write role and account root
 #
-# Toelichting op de deny-aanpak:
-#   ArnNotLike + Effect=Deny zorgt dat AWS ELKE aanvraag weigert
-#   waarvan het principal-ARN niet overeenkomt met de drie uitzonderingen.
-#   Dit is stabieler dan een positief Allow-only beleid, omdat het ook
-#   acties blokkeert die via andere mechanismen (bijv. resource-based Allow
-#   via organisatiebeleid) zouden kunnen binnenkomen.
+# Why the deny approach?
+#   ArnNotLike + Effect=Deny causes AWS to deny EVERY request whose
+#   principal ARN does not match one of the three exceptions.
+#   This is more robust than a positive Allow-only policy because it also
+#   blocks actions that could arrive via other mechanisms (e.g. a resource-based
+#   Allow via an organisation policy).
 # ===========================================================================
 
 resource "aws_s3_bucket_policy" "this" {
   bucket = aws_s3_bucket.this.id
 
-  # Wacht tot de publieke-toegangsblokkering is ingesteld
+  # Wait until the public access block is in place
   depends_on = [aws_s3_bucket_public_access_block.this]
 
   policy = data.aws_iam_policy_document.bucket_policy.json
@@ -119,7 +129,7 @@ resource "aws_s3_bucket_policy" "this" {
 
 data "aws_iam_policy_document" "bucket_policy" {
 
-  # ── Statement 1: verplicht HTTPS ────────────────────────────────────────
+  # ── Statement 1: require HTTPS ──────────────────────────────────────────
   statement {
     sid     = "DenyInsecureTransport"
     effect  = "Deny"
@@ -141,7 +151,7 @@ data "aws_iam_policy_document" "bucket_policy" {
     }
   }
 
-  # ── Statement 2: weiger iedereen BEHALVE de twee rollen + accountroot ───
+  # ── Statement 2: deny everyone EXCEPT the two roles + account root ──────
   statement {
     sid     = "DenyAllExceptAuthorisedRoles"
     effect  = "Deny"
@@ -159,22 +169,37 @@ data "aws_iam_policy_document" "bucket_policy" {
     condition {
       test     = "ArnNotLike"
       variable = "aws:PrincipalArn"
-      values = [
-        local.reader_arn,
-        local.writer_arn,
-        local.account_root,    # voorkomt volledige vergrendeling van het account
+      values   = local.allowed_principals
+    }
+  }
+
+  # ── Statement 3: full S3 access for admin principals ────────────────────
+  dynamic "statement" {
+    for_each = length(var.admin_principals) > 0 ? [1] : []
+    content {
+      sid     = "AllowAdminFullAccess"
+      effect  = "Allow"
+      actions = ["s3:*"]
+      resources = [
+        local.bucket_arn,
+        "${local.bucket_arn}/*",
       ]
+
+      principals {
+        type        = "AWS"
+        identifiers = var.admin_principals
+      }
     }
   }
 }
 
 # ===========================================================================
-# IAM-rol: Leesrol
+# IAM Role: Read role
 # ===========================================================================
 
 resource "aws_iam_role" "reader" {
   name        = var.reader_role_name
-  description = "Alleen-lezen toegang tot S3-bucket ${var.bucket_name}"
+  description = "Read-only access to S3 bucket ${var.bucket_name}"
 
   assume_role_policy = data.aws_iam_policy_document.reader_trust.json
 
@@ -198,13 +223,13 @@ data "aws_iam_policy_document" "reader_trust" {
 
 resource "aws_iam_policy" "reader" {
   name        = "${var.bucket_name}-read-policy"
-  description = "Leestoegang tot S3-bucket ${var.bucket_name}"
+  description = "Read access to S3 bucket ${var.bucket_name}"
 
   policy = data.aws_iam_policy_document.reader_permissions.json
 }
 
 data "aws_iam_policy_document" "reader_permissions" {
-  # Objecten ophalen en weergeven
+  # Retrieve and download objects
   statement {
     sid     = "ReadObjects"
     effect  = "Allow"
@@ -217,7 +242,7 @@ data "aws_iam_policy_document" "reader_permissions" {
     resources = ["${local.bucket_arn}/*"]
   }
 
-  # Bucket-niveau: inhoud opvragen
+  # Bucket level: list contents
   statement {
     sid     = "ListBucket"
     effect  = "Allow"
@@ -237,12 +262,12 @@ resource "aws_iam_role_policy_attachment" "reader" {
 }
 
 # ===========================================================================
-# IAM-rol: Schrijfrol
+# IAM Role: Write role
 # ===========================================================================
 
 resource "aws_iam_role" "writer" {
   name        = var.writer_role_name
-  description = "Schrijftoegang tot S3-bucket ${var.bucket_name}"
+  description = "Write access to S3 bucket ${var.bucket_name}"
 
   assume_role_policy = data.aws_iam_policy_document.writer_trust.json
 
@@ -266,13 +291,13 @@ data "aws_iam_policy_document" "writer_trust" {
 
 resource "aws_iam_policy" "writer" {
   name        = "${var.bucket_name}-write-policy"
-  description = "Schrijftoegang tot S3-bucket ${var.bucket_name}"
+  description = "Write access to S3 bucket ${var.bucket_name}"
 
   policy = data.aws_iam_policy_document.writer_permissions.json
 }
 
 data "aws_iam_policy_document" "writer_permissions" {
-  # Objecten schrijven en verwijderen
+  # Write and delete objects
   statement {
     sid     = "WriteObjects"
     effect  = "Allow"
@@ -287,7 +312,7 @@ data "aws_iam_policy_document" "writer_permissions" {
     resources = ["${local.bucket_arn}/*"]
   }
 
-  # Objecten lezen (schrijver mag ook lezen — omgekeerde is niet per se nodig)
+  # Read objects (write role can also read — the inverse is not necessarily needed)
   statement {
     sid     = "ReadObjects"
     effect  = "Allow"
@@ -299,7 +324,7 @@ data "aws_iam_policy_document" "writer_permissions" {
     resources = ["${local.bucket_arn}/*"]
   }
 
-  # Bucket-niveau
+  # Bucket level
   statement {
     sid     = "ListBucket"
     effect  = "Allow"

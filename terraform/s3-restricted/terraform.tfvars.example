@@ -1,34 +1,40 @@
 # ---------------------------------------------------------------------------
 # terraform.tfvars.example
 #
-# Kopieer dit bestand naar terraform.tfvars en pas de waarden aan.
-# Commit terraform.tfvars NIET naar versiebeheer (staat in .gitignore).
+# Copy this file to terraform.tfvars and adjust the values.
+# Do NOT commit terraform.tfvars to version control (listed in .gitignore).
 # ---------------------------------------------------------------------------
 
-aws_region   = "eu-west-1"
-bucket_name  = "mijn-bedrijf-sales-data-prd"   # globaal uniek, lowercase
+aws_region   = "eu-central-1"
+bucket_name  = "my-company-sales-data-prd"   # globally unique, lowercase
 environment  = "prd"
 project      = "sales-pipeline"
 
-# Wie mag de leesrol aannemen?
-# Gebruik IAM-gebruikers, andere rollen, of AWS-diensten (bijv. Lambda)
+# Who may assume the read role?
+# Use IAM users, other roles, or AWS services (e.g. Lambda)
 reader_trusted_principals = [
-  "arn:aws:iam::123456789012:root",                     # beheerder
-  "arn:aws:iam::123456789012:user/data-analyst",        # individuele gebruiker
-  "arn:aws:iam::123456789012:role/lambda-report-role",  # Lambda-functie
+  "arn:aws:iam::123456789012:root",                     # administrator
+  "arn:aws:iam::123456789012:user/data-analyst",        # individual user
+  "arn:aws:iam::123456789012:role/lambda-report-role",  # Lambda function
 ]
 
-# Wie mag de schrijfrol aannemen?
+# Who may assume the write role?
 writer_trusted_principals = [
-  "arn:aws:iam::123456789012:root",                     # beheerder
-  "arn:aws:iam::123456789012:role/ci-deploy-role",      # CI/CD-pipeline
-  "arn:aws:iam::123456789012:user/etl-service-account", # ETL-serviceaccount
+  "arn:aws:iam::123456789012:root",                     # administrator
+  "arn:aws:iam::123456789012:role/ci-deploy-role",      # CI/CD pipeline
+  "arn:aws:iam::123456789012:user/etl-service-account", # ETL service account
 ]
 
 reader_role_name = "sales-pipeline-s3-reader"
 writer_role_name = "sales-pipeline-s3-writer"
 
 versioning_enabled = true
-force_destroy      = false   # zet op true ALLEEN voor ontwikkelomgeving
+force_destroy      = false   # set to true ONLY for development environments
 
-# log_bucket = "mijn-bedrijf-access-logs"   # verwijder commentaar om te activeren
+# log_bucket = "my-company-access-logs"   # uncomment to enable access logging
+
+# IAM users/roles that need bucket-management access (e.g. s3:DeleteBucket).
+# The deny policy exempts these principals in addition to the two roles above.
+admin_principals = [
+  "arn:aws:iam::123456789012:user/aws-user",
+]

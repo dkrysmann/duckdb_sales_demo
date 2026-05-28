@@ -1,213 +1,212 @@
-# Terraform — Beperkte S3-bucket
+# Terraform — Restricted S3 Bucket
 
-Maakt een AWS S3-bucket aan die volledig is afgeschermd van iedereen, behalve:
+Creates an AWS S3 bucket that is fully locked down to everyone except:
 
-| Rol | Toegestane acties |
+| Role | Permitted actions |
 |---|---|
-| **Leesrol** (`s3-reader`) | `GetObject`, `ListBucket`, `GetObjectVersion`, … |
-| **Schrijfrol** (`s3-writer`) | `PutObject`, `DeleteObject`, `GetObject`, `ListBucket`, … |
-| **AWS-accountroot** | Alles (noodfallback — voorkomt permanente vergrendeling) |
+| **Read role** (`s3-reader`) | `GetObject`, `ListBucket`, `GetObjectVersion`, … |
+| **Write role** (`s3-writer`) | `PutObject`, `DeleteObject`, `GetObject`, `ListBucket`, … |
+| **AWS account root** | Everything (emergency fallback — prevents permanent lock-out) |
 
-Alle andere principals — inclusief andere IAM-gebruikers, rollen en AWS-diensten
-in hetzelfde account — worden geweigerd op bucketbeleids-niveau.
+All other principals — including other IAM users, roles, and AWS services in the
+same account — are denied at bucket-policy level.
 
 ---
 
-## Vereisten
+## Requirements
 
-| Vereiste | Versie |
+| Requirement | Version |
 |---|---|
 | Terraform | ≥ 1.5.0 |
 | AWS Provider | ~> 5.0 |
-| AWS CLI | geconfigureerd met voldoende rechten om IAM en S3 te beheren |
+| AWS CLI | configured with sufficient rights to manage IAM and S3 |
 
 ---
 
-## Structuur
+## Structure
 
 ```
 terraform/s3-restricted/
-├── main.tf                  ← bucket, beleid, IAM-rollen en -policies
-├── variables.tf             ← alle invoerparameters
-├── outputs.tf               ← bucket-ARN, rol-ARNs, voorbeeldcommando's
-├── terraform.tfvars.example ← voorbeeldwaarden (kopieer naar terraform.tfvars)
-└── .gitignore               ← sluit tfstate en tfvars uit
+├── main.tf                  ← bucket, policy, IAM roles and policies
+├── variables.tf             ← all input parameters
+├── outputs.tf               ← bucket ARN, role ARNs, example commands
+├── terraform.tfvars.example ← example values (copy to terraform.tfvars)
+└── .gitignore               ← excludes tfstate and tfvars
 ```
 
 ---
 
-## Gebruik
+## Usage
 
-### 1. Voorbereiding
+### 1. Preparation
 
 ```bash
 cd terraform/s3-restricted
 
-# Kopieer en pas het configuratiebestand aan
+# Copy and edit the configuration file
 cp terraform.tfvars.example terraform.tfvars
-# Bewerk terraform.tfvars met de juiste bucket-naam en principals
+# Edit terraform.tfvars with the correct bucket name and principals
 ```
 
-### 2. Initialiseren
+### 2. Initialise
 
 ```bash
 terraform init
 ```
 
-### 3. Plan bekijken
+### 3. Review the plan
 
 ```bash
 terraform plan
 ```
 
-### 4. Toepassen
+### 4. Apply
 
 ```bash
 terraform apply
 ```
 
-### 5. Opruimen
+### 5. Clean up
 
 ```bash
-terraform destroy   # verwijdert bucket, rollen en beleid
+terraform destroy   # removes bucket, roles and policies
 ```
 
-> ⚠️ Bij `force_destroy = false` (standaard productie-instelling) blokkeert
-> Terraform de `destroy` als de bucket niet leeg is. Verwijder eerst alle
-> objecten of zet tijdelijk `force_destroy = true`.
+> ⚠️ With `force_destroy = false` (the default production setting), Terraform
+> blocks `destroy` if the bucket is not empty. Either delete all objects first
+> or temporarily set `force_destroy = true`.
 
 ---
 
-## Beveiligingsarchitectuur
+## Security Architecture
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                   S3-bucket                         │
+│                     S3 Bucket                       │
 │                                                     │
-│  ┌─ Bucketbeleid ──────────────────────────────┐    │
-│  │                                             │    │
-│  │  Statement 1: Weiger HTTP (alleen HTTPS)    │    │
-│  │                                             │    │
-│  │  Statement 2: Weiger * BEHALVE:             │    │
-│  │    ✅ arn:aws:iam::ACCOUNT:role/s3-reader   │    │
-│  │    ✅ arn:aws:iam::ACCOUNT:role/s3-writer   │    │
-│  │    ✅ arn:aws:iam::ACCOUNT:root (fallback)  │    │
-│  │                                             │    │
-│  └─────────────────────────────────────────────┘    │
+│  ┌─ Bucket Policy ────────────────────────────┐     │
+│  │                                             │     │
+│  │  Statement 1: Deny HTTP (HTTPS only)        │     │
+│  │                                             │     │
+│  │  Statement 2: Deny * EXCEPT:               │     │
+│  │    ✅ arn:aws:iam::ACCOUNT:role/s3-reader   │     │
+│  │    ✅ arn:aws:iam::ACCOUNT:role/s3-writer   │     │
+│  │    ✅ arn:aws:iam::ACCOUNT:root (fallback)  │     │
+│  │                                             │     │
+│  └─────────────────────────────────────────────┘     │
 │                                                     │
-│  ┌─ Blokkade openbare toegang (alle 4 vlaggen) ─┐   │
+│  ┌─ Public Access Block (all 4 flags) ──────────┐   │
 │  └──────────────────────────────────────────────┘   │
 │                                                     │
-│  ┌─ Versleuteling: AES-256 (SSE-S3) ─────────┐     │
+│  ┌─ Encryption: AES-256 (SSE-S3) ────────────┐     │
 │  └────────────────────────────────────────────┘     │
 │                                                     │
-│  ┌─ Versiebeheer (optioneel, standaard: aan) ──┐    │
+│  ┌─ Versioning (optional, default: on) ────────┐    │
 │  └─────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────┘
 
-  Leesrol                    Schrijfrol
-  (s3-reader)                (s3-writer)
-  ┌────────────┐             ┌────────────┐
-  │GetObject   │             │PutObject   │
-  │ListBucket  │             │DeleteObject│
-  │GetObjectV. │             │GetObject   │
-  └────────────┘             │ListBucket  │
-                             └────────────┘
+  Read role                   Write role
+  (s3-reader)                 (s3-writer)
+  ┌────────────┐              ┌────────────┐
+  │GetObject   │              │PutObject   │
+  │ListBucket  │              │DeleteObject│
+  │GetObjectV. │              │GetObject   │
+  └────────────┘              │ListBucket  │
+                              └────────────┘
 ```
 
-### Waarom `ArnNotLike` + `Effect: Deny`?
+### Why `ArnNotLike` + `Effect: Deny`?
 
-Een `Effect: Deny` met `ArnNotLike` is **sterker** dan alleen een `Effect: Allow`:
+An `Effect: Deny` with `ArnNotLike` is **stronger** than a plain `Effect: Allow`:
 
-- Een `Deny` in een bucketbeleid overschrijft elke `Allow` in een
-  identiteitsbeleid (IAM-rol of gebruikersbeleid).
-- Zelfs als iemand later een identiteitsbeleid aanmaakt met
-  `s3:GetObject Allow` op deze bucket, wordt die aanvraag alsnog geweigerd
-  door het bucketbeleid.
-- De enige uitzondering is de AWS-accountroot — die heeft altijd toegang
-  als noodfallback, ook als het bucketbeleid per ongeluk onjuist is.
-
----
-
-## Toegestane acties per rol
-
-### Leesrol
-
-| Actie | Niveau | Toelichting |
-|---|---|---|
-| `s3:GetObject` | Object | Objectinhoud downloaden |
-| `s3:GetObjectVersion` | Object | Specifieke versie downloaden |
-| `s3:GetObjectTagging` | Object | Tags van een object lezen |
-| `s3:GetObjectVersionTagging` | Object | Tags van een versie lezen |
-| `s3:ListBucket` | Bucket | Objecten in de bucket opvragen |
-| `s3:ListBucketVersions` | Bucket | Versiegeschiedenis opvragen |
-| `s3:GetBucketLocation` | Bucket | Regio van de bucket opvragen |
-| `s3:GetBucketVersioning` | Bucket | Versiestatus opvragen |
-
-### Schrijfrol (inclusief lees)
-
-Alle acties van de leesrol, plus:
-
-| Actie | Niveau | Toelichting |
-|---|---|---|
-| `s3:PutObject` | Object | Objecten uploaden |
-| `s3:PutObjectTagging` | Object | Tags toevoegen of aanpassen |
-| `s3:DeleteObject` | Object | Objecten verwijderen |
-| `s3:DeleteObjectVersion` | Object | Specifieke versie verwijderen |
-| `s3:AbortMultipartUpload` | Object | Mislukte uploads annuleren |
-| `s3:ListMultipartUploadParts` | Object | Onderdelen van multipart-upload opvragen |
-| `s3:ListBucketMultipartUploads` | Bucket | Lopende multipart-uploads opvragen |
+- A `Deny` in a bucket policy overrides any `Allow` in an identity policy (IAM role
+  or user policy).
+- Even if someone later creates an identity policy with `s3:GetObject Allow` on this
+  bucket, that request is still denied by the bucket policy.
+- The only exception is the AWS account root — it always has access as an emergency
+  fallback, even if the bucket policy is accidentally misconfigured.
 
 ---
 
-## Variabelen
+## Permitted Actions Per Role
 
-| Naam | Type | Standaard | Beschrijving |
+### Read role
+
+| Action | Level | Description |
+|---|---|---|
+| `s3:GetObject` | Object | Download object content |
+| `s3:GetObjectVersion` | Object | Download a specific version |
+| `s3:GetObjectTagging` | Object | Read object tags |
+| `s3:GetObjectVersionTagging` | Object | Read version tags |
+| `s3:ListBucket` | Bucket | List objects in the bucket |
+| `s3:ListBucketVersions` | Bucket | List version history |
+| `s3:GetBucketLocation` | Bucket | Get the bucket's region |
+| `s3:GetBucketVersioning` | Bucket | Get versioning status |
+
+### Write role (includes read)
+
+All read role actions, plus:
+
+| Action | Level | Description |
+|---|---|---|
+| `s3:PutObject` | Object | Upload objects |
+| `s3:PutObjectTagging` | Object | Add or update tags |
+| `s3:DeleteObject` | Object | Delete objects |
+| `s3:DeleteObjectVersion` | Object | Delete a specific version |
+| `s3:AbortMultipartUpload` | Object | Cancel failed uploads |
+| `s3:ListMultipartUploadParts` | Object | List parts of a multipart upload |
+| `s3:ListBucketMultipartUploads` | Bucket | List in-progress multipart uploads |
+
+---
+
+## Variables
+
+| Name | Type | Default | Description |
 |---|---|---|---|
-| `aws_region` | string | `eu-west-1` | AWS-regio |
-| `bucket_name` | string | — | Globaal unieke bucketnaam (verplicht) |
-| `environment` | string | `prd` | Omgevingslabel voor tags |
-| `project` | string | `sales-pipeline` | Projectnaam voor tags |
-| `reader_trusted_principals` | list(string) | — | ARNs die de leesrol mogen aannemen (verplicht) |
-| `writer_trusted_principals` | list(string) | — | ARNs die de schrijfrol mogen aannemen (verplicht) |
-| `reader_role_name` | string | `s3-reader` | Naam van de leesrol |
-| `writer_role_name` | string | `s3-writer` | Naam van de schrijfrol |
-| `versioning_enabled` | bool | `true` | Versiebeheer aan/uit |
-| `force_destroy` | bool | `false` | Bucket leegmaken bij destroy |
-| `log_bucket` | string | `""` | Bucketnaam voor toegangslogs |
+| `aws_region` | string | `eu-central-1` | AWS region |
+| `bucket_name` | string | — | Globally unique bucket name (required) |
+| `environment` | string | `prd` | Environment label for tags |
+| `project` | string | `sales-pipeline` | Project name for tags |
+| `reader_trusted_principals` | list(string) | — | ARNs allowed to assume the read role (required) |
+| `writer_trusted_principals` | list(string) | — | ARNs allowed to assume the write role (required) |
+| `reader_role_name` | string | `s3-reader` | Name of the read role |
+| `writer_role_name` | string | `s3-writer` | Name of the write role |
+| `versioning_enabled` | bool | `true` | Enable/disable versioning |
+| `force_destroy` | bool | `false` | Empty bucket on destroy |
+| `log_bucket` | string | `""` | Bucket name for access logs |
 
 ---
 
-## Uitvoerwaarden
+## Output Values
 
-Na `terraform apply` zijn de volgende waarden beschikbaar via `terraform output`:
+After `terraform apply`, the following values are available via `terraform output`:
 
 ```bash
-terraform output bucket_arn       # ARN van de bucket
-terraform output reader_role_arn  # ARN van de leesrol
-terraform output writer_role_arn  # ARN van de schrijfrol
-terraform output usage_examples   # kant-en-klare AWS CLI-commando's
+terraform output bucket_arn       # ARN of the bucket
+terraform output reader_role_arn  # ARN of the read role
+terraform output writer_role_arn  # ARN of the write role
+terraform output usage_examples   # ready-to-use AWS CLI commands
 ```
 
 ---
 
-## Veelgestelde vragen
+## FAQ
 
-**Kan ik meerdere leesrollen toevoegen?**  
-Voeg extra ARNs toe aan `reader_trusted_principals` — meer principals kunnen
-de ene leesrol aannemen. Als aparte rollen nodig zijn, voeg dan extra
-`aws_iam_role`-resources toe en pas het bucketbeleid aan.
+**Can I add multiple read principals?**  
+Add extra ARNs to `reader_trusted_principals` — more principals can then assume
+the single read role. If separate roles are needed, add additional `aws_iam_role`
+resources and update the bucket policy accordingly.
 
-**Kan de leesrol ook schrijven als ik per ongeluk een extra `Allow` toevoeg?**  
-Nee. Het bucketbeleid bevat een expliciete `Deny` voor `s3:PutObject` enz.
-voor de leesrol-ARN. Een `Deny` op bucketbeleidsniveau wint altijd van een
-`Allow` in een identiteitsbeleid.
+**Can the read role also write if I accidentally add an extra `Allow`?**  
+No. The bucket policy contains an explicit `Deny` for `s3:PutObject` etc. for
+any principal that is not the write role or account root. A `Deny` at bucket-policy
+level always wins over an `Allow` in an identity policy.
 
-**Wat als ik AWS Organizations gebruik?**  
-Voeg een derde `Statement` toe aan `data.aws_iam_policy_document.bucket_policy`
-met een `aws:PrincipalOrgID`-conditie om toegang te beperken tot principals
-binnen uw organisatie.
+**What if I use AWS Organizations?**  
+Add a third `Statement` to `data.aws_iam_policy_document.bucket_policy` with an
+`aws:PrincipalOrgID` condition to restrict access to principals within your
+organisation.
 
-**Moet ik de staatbestanden opslaan in een externe backend?**  
-Ja, voor productie. Voeg een `backend "s3"` blok toe aan `main.tf` of gebruik
-Terraform Cloud. Sla `terraform.tfstate` nooit op in Git.
+**Should I store state files in a remote backend?**  
+Yes, for production. Add a `backend "s3"` block to `main.tf` or use Terraform
+Cloud. Never store `terraform.tfstate` in Git.

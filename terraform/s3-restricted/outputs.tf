@@ -37,6 +37,16 @@ output "writer_policy_arn" {
   value       = aws_iam_policy.writer.arn
 }
 
+output "snowflake_role_arn" {
+  description = "ARN of the IAM role assumed by Snowflake"
+  value       = aws_iam_role.snowflake.arn
+}
+
+output "snowflake_storage_integration_name" {
+  description = "Snowflake storage integration name"
+  value       = snowflake_storage_integration.this.name
+}
+
 # Commando's om de rollen te gebruiken via AWS CLI
 output "usage_examples" {
   description = "Voorbeeldcommando's om de rollen te gebruiken"

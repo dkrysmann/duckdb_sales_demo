@@ -1,4 +1,4 @@
-# Nooit committen naar git
+# Never commit to git
 terraform.tfvars
 *.tfstate
 *.tfstate.backup
